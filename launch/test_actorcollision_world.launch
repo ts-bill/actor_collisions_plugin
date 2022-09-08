@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <arg name="custom" default="false" />
+  <arg name="custom_prefix" default="" />
+  <arg if="$(arg custom)" name="world_name" default="$(arg custom_prefix).world" />
+  <arg unless="$(arg custom)" name="world_name" value="$(find actor_collisions_plugin)/worlds/actor_collisions.world"/>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find bobo_description)/urdf/bobo_rs.xacro'" />
+
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0.1"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!-- <env name="GAZEBO_RESOURCE_PATH" value="$(find actor_collisions_plugin)/worlds:$(find gazebo-plugin-autonomous-actor)"/>
+    <env name="GAZEBO_MODEL_PATH" value="$(find actor_collisions_plugin/models"/>
+    <env name="GAZEBO_PLUGIN_PATH" value="$(find gazebo-plugin-autonomous-actor)/plugins"/> -->
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="verbose" value="true"/>
+  </include>
+  <node name="mybot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-urdf -param robot_description -model bobo -x $(arg x) -y $(arg y) -z $(arg z)" />
+
+    <!--node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" name="teleop">
+  	</node-->
+  <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering"/>
+<!-- send fake joint values -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="False"/>
+  </node>
+
+  <!-- Combine joint values -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+  <!-- Show in Rviz   -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find bobo_description)/config/bobo_model_viz.rviz"/>
+</launch>
